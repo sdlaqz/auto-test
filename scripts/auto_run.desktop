@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=auto-run
+Comment=auto-run
+Type=Application
+Exec=mate-terminal --window -e @EXEC@
+Hidden=false
+X-MATE-Autostart-enabled=true
+Name[zh_CN]=Run-All-Test
