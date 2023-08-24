@@ -11,6 +11,7 @@ set_test_path()
 os_name=`grep "^ID=" /etc/os-release |cut -d = -f 2-`
 dir=`realpath ./`
 echo $dir
+cp ./new_run.sh ./.new_run.sh
 sed -i -e "s#@MAIN_DIR@#$dir#g" ./new_run.sh
 }
 

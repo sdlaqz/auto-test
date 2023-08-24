@@ -281,13 +281,23 @@ start_reboot_test() {
 	cd  $REBOOT_DIR
 	EXECDELAY=10
 	# set test count 
-	reboot_num=`cat $REBOOT_DIR/count |wc -l`
-	reboot_num=$(($reboot_num + 1))
-	timestr=$(date +"%Y/%m/%d-%H:%M")
-	echo "$timestr: reboot count = [$reboot_num]" |tee -a $REBOOT_DIR/count |tee -a $REBOOT_DIR/reboot.log
+	if [[ ! -f $REBOOT_DIR/count ]]; then
+		touch $REBOOT_DIR/count
+	fi
 	reboot_count=`cat $REBOOT_DIR/count |wc -l`
 	reboot_time=`grep Reboot $DIR/test-file |grep -v "#" |awk '{print $2}'`
-	unset reboot_num
+
+	if [[ $reboot_count -eq $reboot_time ]];then
+		touch $TAG_LOGS/reboot_pass
+		echo "******************************************************************" |tee -a $REBOOT_DIR/reboot.log
+		echo "      Already Reboot: $reboot_time Times, TEST Done!!! "	|tee -a $REBOOT_DIR/reboot.log
+		echo "******************************************************************" |tee -a $REBOOT_DIR/reboot.log
+		read
+		#	exit
+		echo "system reboot , wait......" |tee -a $REBOOT_DIR/reboot.log
+		sleep $EXECDELAY
+		/usr/sbin/reboot
+	fi
 
 	echo "***********************************************************" |tee -a $REBOOT_DIR/reboot.log
 	echo -e "\n   This System Already Reboot: $reboot_count times.        \n" |tee -a $REBOOT_DIR/reboot.log
@@ -305,17 +315,22 @@ start_reboot_test() {
 		done
 	else
 
-		nvme_check
-		if [[ $reboot_count -eq $reboot_time ]];then
-			touch $TAG_LOGS/reboot_pass
-			echo "******************************************************************" |tee -a $REBOOT_DIR/reboot.log
-			echo "      Already Reboot: $reboot_time Times, TEST Done!!! "	|tee -a $REBOOT_DIR/reboot.log
-			echo "******************************************************************" |tee -a $REBOOT_DIR/reboot.log
-			read
-		#	exit
-		fi
-		echo "system reboot , wait......" |tee -a $REBOOT_DIR/reboot.log
-		/usr/sbin/reboot
+	#	nvme_check
+	#		if [[ $reboot_count -eq $reboot_time ]];then
+	#			touch $TAG_LOGS/reboot_pass
+	#			echo "******************************************************************" |tee -a $REBOOT_DIR/reboot.log
+	#			echo "      Already Reboot: $reboot_time Times, TEST Done!!! "	|tee -a $REBOOT_DIR/reboot.log
+	#			echo "******************************************************************" |tee -a $REBOOT_DIR/reboot.log
+	#			read
+	#		#	exit
+	#		fi
+	reboot_num=`cat $REBOOT_DIR/count |wc -l`
+	reboot_num=$(($reboot_num + 1))
+	timestr=$(date +"%Y/%m/%d-%H:%M")
+	echo "$timestr: reboot count = [$reboot_num]" |tee -a $REBOOT_DIR/count |tee -a $REBOOT_DIR/reboot.log
+	unset reboot_num
+	echo "system reboot , wait......" |tee -a $REBOOT_DIR/reboot.log
+	/usr/sbin/reboot
 	fi
 }
 
@@ -327,9 +342,9 @@ start_s3_test() {
 	EXECDELAY=10
 	# set test count 
 	s3_time=`grep S3 $DIR/test-file |grep -v "#" |awk '{print $2}'`
-	#if [[ ! -f $S3_DIR/count ]]; then
-	#	touch $S3_DIR/count
-	#fi
+	if [[ ! -f $S3_DIR/count ]]; then
+		touch $S3_DIR/count
+	fi
 	s3_count=`cat $S3_DIR/count |wc -l`
 
 	echo "will do s3 $s3_time times"
@@ -361,13 +376,16 @@ start_s3_test() {
 			sleep 2
 
 			timestr=$(date +"%Y/%m/%d-%H:%M")
-			echo "$timestr: S3 count = [$s3_num]" |tee -a $S3_DIR/count |tee -a $S3_DIR/s3.log
+			echo -e "\n $timestr: S3 count = [$s3_num]" |tee -a $S3_DIR/count |tee -a $S3_DIR/s3.log
 			rtcwake -m mem -s 10
 		fi
 
 	done
 	touch $TAG_LOGS/S3_pass
-
+	echo "******************************************************************" |tee -a $S3_DIR/s3.log
+	echo "      Already S3: $s3_time Times, TEST Done!!! "	|tee -a $S3_DIR/s3.log
+	echo "******************************************************************" |tee -a $S3_DIR/s3.log
+	/usr/sbin/reboot
 }
 
 # setect test item
