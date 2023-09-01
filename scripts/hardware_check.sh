@@ -3,6 +3,9 @@
 DIR_LOG1="$(cd "$(dirname "${BASH_SOURCE[0]}")"&&pwd)"
 DIR_LOG="$DIR_LOG1/../check_logs"
 echo "asd:" $DIR_LOG
+if [[ ! -d $DIR_LOG ]]; then
+	mkdir -p $DIR_LOG
+fi
 
 memsizecheck()
 {

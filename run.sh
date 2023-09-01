@@ -12,7 +12,11 @@ os_name=`grep "^ID=" /etc/os-release |cut -d = -f 2-`
 dir=`realpath ./`
 echo $dir
 cp ./new_run.sh ./.new_run.sh
+cp ./terminal.sh ./.terminal.sh
 sed -i -e "s#@MAIN_DIR@#$dir#g" ./new_run.sh
+sed -i -e "s#@MAIN_DIR@#$dir#g" ./terminal.sh
+#del hardware check logs
+#rm -rfv ./check_logs
 }
 
 set_autologin()
@@ -32,7 +36,7 @@ set_autologin()
 	# set autostart 
 	if [[ -d /etc/xdg/autostart/ ]]; then
 		cp $dir/scripts/auto_run.desktop /etc/xdg/autostart/
-		sed -i -e "s#@EXEC@#$dir/new_run.sh#g" /etc/xdg/autostart/auto_run.desktop
+		sed -i -e "s#@EXEC@#$dir/terminal.sh#g" /etc/xdg/autostart/auto_run.desktop
 	else
 		echo "\033[31;40mPlease make sure /etc/xdg/autostart/ is existed !!!\033[0m"
 		exit
@@ -85,6 +89,7 @@ check_s3_dir()
 		exit
 	fi
 }
+
 set_spec2006_test()
 {
 	echo -n -e '\033[35mDo you want to run Spec2006 test" [Y/N]:\033[0m' 
@@ -232,6 +237,19 @@ set_s3_test()
 	done
 }
 
+# save spec2006 old result
+save_spec2006_result()
+{
+	grep Spec2006 ./test-file |grep -v "#" 2>&1 >/dev/null
+	if [[ $? -eq 0 ]]; then
+		SPEC2007_DIR=`realpath $(ls -d */ |grep cpu2006)`
+		MM=`date +%Y%m%d%H`
+		mkdir -pv ${SPEC2006_DIR}/old/${MM}
+		mv -v ${SPEC2006_DIR}/result/* ${SPEC2006_DIR}/old/${MM} 2>&1 >/dev/null
+		unset MM
+	fi
+}
+
 # save stress old result
 save_stress_result()
 {
@@ -245,26 +263,13 @@ save_stress_result()
 	fi
 }
 
-# save spec2006 old result
-save_spec2006_result()
-{
-	grep Spec2006 ./test-file |grep -v "#" 2>&1 >/dev/null
-	if [[ $? -eq 0 ]]; then
-		SPEC2007_DIR=`realpath $(ls -d */ |grep cpu2006)`
-		MM=`date +%Y%m%d%H`
-		mkdir -pv ${SPEC2006_DIR}/old/${MM}
-		mv -v ${SPEC2006_DIR}/result/* ${SPEC2006_DIR}/old/${MM}
-		unset MM
-	fi
-}
-
 # save reboot old result
 save_reboot_result()
 {
 	grep Reboot ./test-file |grep -v "#" 2>&1 >/dev/null
 	if [[ $? -eq 0 ]]; then
 		REBOOT_DIR=`realpath $(ls -d */ |grep reboot)`
-		rm -rfv $REBOOT_DIR/*
+		rm -rfv $REBOOT_DIR/* 2>&1 >/dev/null
 	fi
 }
 
@@ -274,7 +279,7 @@ save_s3_result()
 	grep S3 ./test-file |grep -v "#" 2>&1 >/dev/null
 	if [[ $? -eq 0 ]]; then
 		S3_DIR=`realpath $(ls -d */ |grep s3)`
-		rm -rfv $S3_DIR/*
+		rm -rfv $S3_DIR/* 2>&1 >/dev/null
 	fi
 }
 
@@ -427,4 +432,3 @@ while getopts 'f:c h' OPT; do
 			;;
 	esac
 done
-
