@@ -242,7 +242,7 @@ save_spec2006_result()
 {
 	grep Spec2006 ./test-file |grep -v "#" 2>&1 >/dev/null
 	if [[ $? -eq 0 ]]; then
-		SPEC2007_DIR=`realpath $(ls -d */ |grep cpu2006)`
+		SPEC2006_DIR=`realpath $(ls -d */ |grep cpu2006)`
 		MM=`date +%Y%m%d%H`
 		mkdir -pv ${SPEC2006_DIR}/old/${MM}
 		mv -v ${SPEC2006_DIR}/result/* ${SPEC2006_DIR}/old/${MM} 2>&1 >/dev/null
