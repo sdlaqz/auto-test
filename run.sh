@@ -11,12 +11,14 @@ set_test_path()
 os_name=`grep "^ID=" /etc/os-release |cut -d = -f 2-`
 dir=`realpath ./`
 echo $dir
-cp ./new_run.sh ./.new_run.sh
-cp ./terminal.sh ./.terminal.sh
-sed -i -e "s#@MAIN_DIR@#$dir#g" ./new_run.sh
+cp ./.new_run.sh ./main.sh
+cp ./.terminal.sh ./terminal.sh
+sed -i -e "s#@MAIN_DIR@#$dir#g" ./main.sh
 sed -i -e "s#@MAIN_DIR@#$dir#g" ./terminal.sh
+chmod 555 ./main.sh
+chmod 555 ./terminal.sh
 #del hardware check logs
-#rm -rfv ./check_logs
+rm -rfv ./check_logs/*
 }
 
 set_autologin()

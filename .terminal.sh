@@ -1,2 +1,2 @@
 #!/bin/bash
-/home/loongson/auto_run/new_run.sh 2>&1 |tee -a /home/loongson/auto_run/logs/.run_log.txt
+@MAIN_DIR@/main.sh 2>&1 |tee -a @MAIN_DIR@/logs/.run_log.txt

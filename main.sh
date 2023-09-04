@@ -31,9 +31,7 @@ cecho ()
 
 # set environment
 #DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"&&pwd)"
-DIR="/home/loongson/auto_run"
-DIR="/home/loongson/auto_run"
-#DIR="/home/loongson/temp/auto_run"
+DIR="@MAIN_DIR@"
 echo $DIR
 if [[ ! -d $DIR ]]; then
        cecho "The Test Dir is not found, Please check your test path!!" $red $blink	

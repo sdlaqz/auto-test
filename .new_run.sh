@@ -32,8 +32,6 @@ cecho ()
 # set environment
 #DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"&&pwd)"
 DIR="@MAIN_DIR@"
-DIR="/home/loongson/auto_run"
-#DIR="/home/loongson/temp/auto_run"
 echo $DIR
 if [[ ! -d $DIR ]]; then
        cecho "The Test Dir is not found, Please check your test path!!" $red $blink	
@@ -173,8 +171,8 @@ start_stress_test()
 	#echo "stress_time:" $stress_time >> $ERR_LOG
 	memory_total=$(free -m | awk 'NR==2' | awk '{print $4}')
 	free_memory=$(echo "${memory_total}*0.8"|bc|awk '{print int($0)}') 
-	shijian=1
-	#shijian=24
+	#shijian=1
+	shijian=24
 	#seconds=$(($shijian*60))
 	seconds=$(($shijian*3600))
 	loop=$((${free_memory}/1200))
@@ -380,7 +378,7 @@ do_hard_check() {
 
 # setect test item
 cd $DIR
-do_hard_check
+do_hard_check 2>&1 |tee -a $RUN_LOG
 for test_object in `cat $TEST_FILE |awk '{print $1}'`
 do
 	case "$test_object" in
