@@ -1,2 +1,4 @@
 # auto-test
 reboot,s3,spec,stress auto test 
+1、运行该脚本，需要将cpu2006-v1.3拷贝到当前目录，该测试工具过大，无法直接放在该目录下
+2、运行该脚本，需要将strsssapptest拷贝到当前目录，该测试工具需要编译
