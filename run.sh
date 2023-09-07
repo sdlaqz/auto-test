@@ -5,6 +5,12 @@ if [ $UID -ne 0 ]; then
 	echo -e "\033[31;40;5mPlease run $0 with root user!\033[0m" 
 	exit
 fi
+
+if [ ! -f /usr/bin/mate-terminal ]; then
+	echo -e "\033[31;40;5mmate-terminal is not install, please install the package!\033[0m" 
+	echo -e "\033[31;40;5mthe mate-terminal packages in ./mate-terminal\033[0m" 
+	exit
+fi
 # set test path
 set_test_path()
 {
