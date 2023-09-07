@@ -2,3 +2,4 @@
 reboot,s3,spec,stress auto test 
 1、运行该脚本，需要将cpu2006-v1.3拷贝到当前目录，该测试工具过大，无法直接放在该目录下
 2、运行该脚本，需要将strsssapptest拷贝到当前目录，该测试工具需要编译
+3、该测试脚本运行需要使用到mate-terminal，如果系统未安装mate-terminal则无法运行(主要是uos系统)，mate-terminal安装包列表如下：libvte  libvte-2.91-common  mate-desktop-common  mate-terminal  mate-terminal-common
