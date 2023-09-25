@@ -1,2 +1,5 @@
 s3/
 reboot/
+test-file
+logs
+check_logs
