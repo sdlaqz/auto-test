@@ -29,10 +29,16 @@ cecho ()
 	return
 }  
 
+# get mem Manufacturer
+MEM_MANUFACTURER=`dmidecode  -t 17 |grep "Manufacturer:"`
+if [[ $? != 0 ]]; then
+	MEM_MANUFACTURER="mem manufacturer is null"
+fi
+
 # set environment
 #DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"&&pwd)"
 DIR="@MAIN_DIR@"
-echo $DIR
+#echo $DIR
 if [[ ! -d $DIR ]]; then
        cecho "The Test Dir is not found, Please check your test path!!" $red $blink	
        exit
@@ -41,19 +47,19 @@ fi
 cd $DIR
 
 SPEC2006_DIR=`realpath $(ls -d */ |grep cpu2006)`
-echo SPEC2006_DIR:$SPEC2006_DIR
+#echo SPEC2006_DIR:$SPEC2006_DIR
 
 STRESS_DIR=`realpath $(ls -d */ |grep stressapptest)`
-echo STRESS_DIR:$STRESS_DIR
+#echo STRESS_DIR:$STRESS_DIR
 
 REBOOT_DIR=`realpath $(ls -d */ |grep reboot)`
-echo REBOOT_DIR:$REBOOT_DIR
+#echo REBOOT_DIR:$REBOOT_DIR
 
 S3_DIR=`realpath $(ls -d */ |grep s3)`
-echo S3_DIR:$S3_DIR
+#echo S3_DIR:$S3_DIR
 
 LOGS="$DIR/logs"
-echo $LOGS
+#echo $LOGS
 if [[ ! -d $LOGS ]]; then
 	mkdir $LOGS
 fi
@@ -84,14 +90,14 @@ if [[ ! -f $STRESS_LOG ]]; then
 fi
 
 TEST_FILE="$DIR/test-file"
-echo $TEST_FILE
+#echo $TEST_FILE
 if [[ ! -f $TEST_FILE ]]; then
 	cecho "The test item does not exist, Plesase specify the test-file! " $red $blink
 	exit
 fi
 
 DIR_SCRIPTS="$DIR/scripts"
-echo $DIR_SCRIPTS
+#echo $DIR_SCRIPTS
 if [[ ! -f $DIR_SCRIPTS/hardware_check.sh ]] || [[ ! -f $DIR_SCRIPTS/auto_run.desktop ]]; then
 	cecho "The test scripts dir not found, Please check your test scripts!!"
 	exit
@@ -132,11 +138,13 @@ start_spec2006_test()
 	grep -q "NR" $SPEC2006_DIR/result/*.txt
 	if [[ $? -ne 1 ]]; then
 		touch $TAG_LOGS/spec2006_fail
-		echo "RUN SPEC2006 FAIL!" |tee -a $SPEC_LOG |tee -a $RUN_LOG 
-		echo "=======================================================" |tee -a $SPEC_LOG |tee -a $RUN_LOG 
-		echo "=======================================================" |tee -a $SPEC_LOG |tee -a $RUN_LOG 
-		echo `date` |tee -a $ERR_LOG |tee -a $RUN_LOG 
-		echo "SPEC2006:FAIL!" |tee -a $ERR_LOG |tee -a $RUN_LOG 
+		echo "RUN SPEC2006 FAIL!" |tee -a $SPEC_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/spec_result.txt
+		echo "=======================================================" |tee -a $SPEC_LOG |tee -a $RUN_LOG |tee -a $DIR/logs/spec_result.txt
+		echo "=======================================================" |tee -a $SPEC_LOG |tee -a $RUN_LOG |tee -a $DIR/logs/spec_result.txt
+		echo `date` |tee -a $ERR_LOG |tee -a $RUN_LOG |tee -a $DIR/logs/spec_result.txt
+		echo "SPEC2006:FAIL!" |tee -a $ERR_LOG |tee -a $RUN_LOG |tee -a $DIR/logs/spec_result.txt
+		mv $DIR/logs/spec_result.txt $DIR/logs/spec_fail.txt
+		sed -i "1i $MEM_MANUFACTURER" $DIR/logs/spec_fail.txt
 		stop_test
 		echo -n -e "\033[35mPlease See details in the $SPEC_LOG\033[0m"
 		while true; do
@@ -146,9 +154,11 @@ start_spec2006_test()
 		#/usr/sbin/reboot
 	else
 		touch $TAG_LOGS/spec2006_pass
-		echo "RUN SPEC2006 SUCCESS!" |tee -a $SPEC_LOG |tee -a $RUN_LOG 
-		echo "=======================================================" |tee -a $SPEC_LOG |tee -a $RUN_LOG 
-		echo "=======================================================" |tee -a $SPEC_LOG |tee -a $RUN_LOG 
+		echo "RUN SPEC2006 SUCCESS!" |tee -a $SPEC_LOG |tee -a $RUN_LOG |tee -a $DIR/logs/spec_result.txt
+		echo "=======================================================" |tee -a $SPEC_LOG |tee -a $RUN_LOG |tee -a $DIR/logs/spec_result.txt
+		echo "=======================================================" |tee -a $SPEC_LOG |tee -a $RUN_LOG |tee -a $DIR/logs/spec_result.txt
+		mv $DIR/logs/spec_result.txt $DIR/logs/spec_success.txt
+		sed -i "1i $MEM_MANUFACTURER" $DIR/logs/spec_success.txt
 	fi
 	sleep 60
 	/usr/sbin/reboot
@@ -201,7 +211,7 @@ start_stress_test()
 		sleep 10m
 		if [[ -z "$(ls -A ${STRESS_DIR}/logs/${stress_date})" ]]; then
 			touch $TAG_LOGS/stress_fail
-			echo -e "+------------ Stressapptest fail -----------+" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
+			echo -e "+------------ Stressapptest fail -----------+" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG |tee -a $DIR/logs/stress_result.txt
 			echo  "+------------ Stressapptest fail -----------+"
 			read 	
 			stop_test
@@ -215,23 +225,25 @@ start_stress_test()
 				end_seconds=$(date --date="${endtime}" +%s)
 				num=$((end_seconds-start_seconds))
 				total_seconds=`expr ${num} / 3600`
-				echo -e "+------------ Stressapptest -----------+" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
-				echo -e "Test Results   : PASS" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
-				echo -e "Start Time     : ${starttime} " |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
-				echo -e "End Time       : ${endtime} " |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
-				echo -e "Total test tim : "${total_seconds}"h" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
-				echo -e "+--------------------------------------+ \n" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
+				echo -e "+------------ Stressapptest -----------+" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
+				echo -e "Test Results   : PASS" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
+				echo -e "Start Time     : ${starttime} " |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
+				echo -e "End Time       : ${endtime} " |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
+				echo -e "Total test tim : "${total_seconds}"h" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
+				echo -e "+--------------------------------------+ \n" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
 				sleep 10
 
 				if [ ${stress_count} -ge $stress_time ]; then
 					rm -rf ${STRESS_DIR}/logs/count
 					touch $TAG_LOGS/stress_pass
+					mv $DIR/logs/stress_result.txt $DIR/logs/stress_success.txt
+					sed -i "1i $MEM_MANUFACTURER" $DIR/logs/stress_success.txt
 					#crontab -r
 					/usr/sbin/reboot
 					exit 0
 				else
 					#echo -e "$(date +'%Y-%m-%d %H:%M:%S')  Reboot  $count \n" >> ${stress_result_log}
-					echo -e "$(date +'%Y-%m-%d %H:%M:%S')  Reboot  $stress_count \n" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
+					echo -e "$(date +'%Y-%m-%d %H:%M:%S')  Reboot  $stress_count \n" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
 					/usr/sbin/reboot
 				fi
 			fi
@@ -245,16 +257,18 @@ start_stress_test()
 			end_seconds=$(date --date="${endtime}" +%s)
 			num=$((end_seconds-start_seconds))
 			total_seconds=`expr ${num} / 3600`
-			echo -e "+------------ Stressapptest -----------+" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
-			echo -e "Test Results   : Error " |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
-			echo -e "Start Time     : ${starttime} " |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
-			echo -e "End Time       : ${endtime} " |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
-			echo -e "Total test tim : "${total_seconds}"h" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
-			echo -e "+--------------------------------------+ \n" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG 
+			echo -e "+------------ Stressapptest -----------+" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
+			echo -e "Test Results   : Error " |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
+			echo -e "Start Time     : ${starttime} " |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
+			echo -e "End Time       : ${endtime} " |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
+			echo -e "Total test tim : "${total_seconds}"h" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
+			echo -e "+--------------------------------------+ \n" |tee -a ${stress_result_log} $STRESS_LOG |tee -a $RUN_LOG  |tee -a $DIR/logs/stress_result.txt
 			sleep 10
 
 			rm -rf ${STRESS_DIR}/logs/count
 			touch $TAG_LOGS/stress_fail
+			mv $DIR/logs/stress_result.txt $DIR/logs/stress_fail.txt
+			sed -i "1i $MEM_MANUFACTURER" $DIR/logs/stress_fail.txt
 			stop_test
 			echo -n -e "\033[35mPlease See details in the $STRESS_LOG\033[0m" 
 			read
@@ -280,9 +294,11 @@ start_reboot_test() {
 
 	if [[ $reboot_count -ge $reboot_time ]];then
 		touch $TAG_LOGS/reboot_pass
-		echo "******************************************************************" |tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG 
-		echo "      Already Reboot: $reboot_time Times, TEST Done!!! "	|tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG 
-		echo "******************************************************************" |tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG 
+		echo "******************************************************************" |tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG  |tee -a $DIR/logs/reboot_result.txt
+		echo "      Already Reboot: $reboot_time Times, TEST Done!!! "	|tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG |tee -a $DIR/logs/reboot_result.txt
+		echo "******************************************************************" |tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG |tee -a $DIR/logs/reboot_result.txt
+		mv $DIR/logs/reboot_result.txt $DIR/logs/reboot_success.txt
+		sed -i "1i $MEM_MANUFACTURER" $DIR/logs/reboot_success.txt
 		#read
 		#	exit
 		echo "system reboot , wait......" |tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG 
@@ -290,7 +306,8 @@ start_reboot_test() {
 		/usr/sbin/reboot
 	fi
 
-	echo "***********************************************************" |tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG 
+	echo "   This System Already Reboot: $reboot_count times.        " |tee -a $DIR/logs/reboot_result.txt
+	echo "***********************************************************" |tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG  
 	echo -e "\n   This System Already Reboot: $reboot_count times.        \n" |tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG 
 	echo "***********************************************************" |tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG 
 	echo "************************************************************" |tee -a $REBOOT_DIR/reboot.log |tee -a $RUN_LOG   
@@ -335,8 +352,9 @@ start_s3_test() {
 	while [ $s3_count -lt $s3_time ]
 	do
 
+		echo "   This System Has Done Suspend: $s3_count time.        " |tee -a $DIR/logs/s3_result.txt
 		echo "***********************************************************" |tee -a $S3_DIR/s3.log |tee -a $RUN_LOG 
-		echo -e "\n   This System Has Done Suspend: $s3_count time.        \n" |tee -a $S3_DIR/s3.log |tee -a $RUN_LOG 
+		echo -e "\n   This System Has Done Suspend: $s3_count time.        \n" |tee -a $S3_DIR/s3.log |tee -a $RUN_LOG
 		echo "***********************************************************" |tee -a $S3_DIR/s3.log |tee -a $RUN_LOG 
 		echo "************************************************************" |tee -a $S3_DIR/s3.log |tee -a $RUN_LOG   
 		echo -n "The system will Suspend in $EXECDELAY secs. Do you want to cancel the action? (y/N) " |tee -a $S3_DIR/s3.log |tee -a $RUN_LOG 
@@ -365,9 +383,11 @@ start_s3_test() {
 
 	done
 	touch $TAG_LOGS/S3_pass
-	echo "******************************************************************" |tee -a $S3_DIR/s3.log |tee -a $RUN_LOG 
-	echo "      Already S3: $s3_time Times, TEST Done!!! "	|tee -a $S3_DIR/s3.log |tee -a $RUN_LOG 
-	echo "******************************************************************" |tee -a $S3_DIR/s3.log |tee -a $RUN_LOG 
+	echo "******************************************************************" |tee -a $S3_DIR/s3.log |tee -a $RUN_LOG |tee -a $DIR/logs/s3_result.txt
+	echo "      Already S3: $s3_time Times, TEST Done!!! "	|tee -a $S3_DIR/s3.log |tee -a $RUN_LOG |tee -a $DIR/logs/s3_result.txt
+	echo "******************************************************************" |tee -a $S3_DIR/s3.log |tee -a $RUN_LOG |tee -a $DIR/logs/s3_result.txt
+	mv $DIR/logs/s3_result.txt $DIR/logs/s3_success.txt
+	sed -i "1i $MEM_MANUFACTURER" $DIR/logs/s3_success.txt
 	/usr/sbin/reboot
 }
 
