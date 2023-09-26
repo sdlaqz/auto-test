@@ -24,7 +24,8 @@ sed -i -e "s#@MAIN_DIR@#$dir#g" ./terminal.sh
 chmod 555 ./main.sh
 chmod 555 ./terminal.sh
 #del hardware check logs
-rm -rfv ./check_logs/*
+rm -rfv ./check_logs/* 2>&1 >/dev/null
+rm -rfv .test-file_* 2>&1 >/dev/null
 }
 
 set_autologin()
@@ -58,7 +59,7 @@ set_autologin()
 check_spec_dir()
 {
 	SPEC2006_DIR=`realpath $(ls -d */ |grep cpu2006)`
-	echo SPEC_DIR:$SPEC2006_DIR
+	#echo SPEC_DIR:$SPEC2006_DIR
 	if [[ -d $SPEC_DIR ]]; then
 		echo -e "\033[31mThe spec2006 dir is not found, Make sure the dir exists!!\033[0m "
 		exit
@@ -69,7 +70,7 @@ check_spec_dir()
 check_stress_dir()
 {
 	STRESS_DIR=`realpath $(ls -d */ |grep stressapptest)`
-	echo STRESS_DIR:$STRESS_DIR
+	#echo STRESS_DIR:$STRESS_DIR
 	if [[ -d $STRESS_DIR ]]; then
 		cecho "\033[31mThe stressapptest dir is not found, Make sure the dir exists!!\033[0m "
 		exit
@@ -80,7 +81,7 @@ check_stress_dir()
 check_reboot_dir()
 {
 	REBOOT_DIR=`realpath $(ls -d */ |grep reboot)`
-	echo REBOOT_DIR:$REBOOT_DIR
+	#echo REBOOT_DIR:$REBOOT_DIR
 	if [[ -d $REBOOT_DIR ]]; then
 		cecho "\033[31mThe reboot dir is not found, Make sure the dir exists!!\033[0m "
 		exit
@@ -91,7 +92,7 @@ check_reboot_dir()
 check_s3_dir()
 {
 	S3_DIR=`realpath $(ls -d */ |grep s3)`
-	echo S3_DIR:$S3_DIR
+	#echo S3_DIR:$S3_DIR
 	if [[ -d $S3_DIR ]]; then
 		cecho "\033[31mThe s3 dir is not found, Make sure the dir exists!!\033[0m "
 		exit
@@ -105,12 +106,12 @@ set_spec2006_test()
 		case $choice in
 			"y"|"Y" )
 				#check_spec_dir
-				echo "Spec2006 Y"
-				echo "Spec2006	" >> $dir/test-file_spec
+				#echo "Spec2006 Y"
+				echo "Spec2006	" >> $dir/.test-file_spec
 				break
 				;;
 			"n"|"N" )
-				echo "Spec2006 N"
+				#echo "Spec2006 N"
 				break
 				;;
 			* )
@@ -129,7 +130,7 @@ set_stress_test()
 		case $choice in
 			"y"|"Y" )
 				#check_stress_dir
-				echo "Stress Y"
+				#echo "Stress Y"
 				echo -ne "\033[36m###Please Set Stress Test Lpas###\033[0m\n"
 				echo -ne "\033[35mEnter Laps:"
 				while read  testlaps;
@@ -140,7 +141,7 @@ set_stress_test()
 					fi
 					expr $testlaps + 1 &> /dev/null
 					if [[ $? == 0 ]]; then
-						echo "Stress	"$testlaps >> $dir/test-file_stress
+						echo "Stress	"$testlaps >> $dir/.test-file_stress
 						break
 					else
 						echo -e "\033[31mThe entered number is invalid, Please enter the correct number!\033[0m"
@@ -151,7 +152,7 @@ set_stress_test()
 				break
 				;;
 			"n"|"N" )
-				echo "Stress N"
+				#echo "Stress N"
 				break
 				;;
 			* )
@@ -170,7 +171,7 @@ set_reboot_test()
 		case $choice in
 			"y"|"Y" )
 				#check_reboot_dir
-				echo "Reboot Y"
+				#echo "Reboot Y"
 				echo -ne "\033[36m###Please Set Reboot Test Times###\033[0m\n"
 				echo -ne "\033[35mEnter Times:"
 				while read  testtimes;
@@ -181,7 +182,7 @@ set_reboot_test()
 					fi
 					expr $testtimes + 1 &> /dev/null
 					if [[ $? == 0 ]]; then
-						echo "Reboot	"$testtimes >> $dir/test-file_reboot
+						echo "Reboot	"$testtimes >> $dir/.test-file_reboot
 						break
 					else
 						echo -e "\033[31mThe entered number is invalid, Please enter the correct number!\033[0m"
@@ -192,7 +193,7 @@ set_reboot_test()
 				break
 				;;
 			"n"|"N" )
-				echo "Reboot N"
+				#echo "Reboot N"
 				break
 				;;
 			* )
@@ -211,7 +212,7 @@ set_s3_test()
 		case $choice in
 			"y"|"Y" )
 				#check_s3_dir
-				echo "S3 Y"
+				#echo "S3 Y"
 				echo -ne "\033[36m###Please Set S3 Test Times###\033[0m\n"
 				echo -ne "\033[35mEnter Times:"
 				while read  testtimes;
@@ -222,7 +223,7 @@ set_s3_test()
 					fi
 					expr $testtimes + 1 &> /dev/null
 					if [[ $? == 0 ]]; then
-						echo "S3	"$testtimes >> $dir/test-file_s3
+						echo "S3	"$testtimes >> $dir/.test-file_s3
 						break
 					else
 						echo -e "\033[31mThe entered number is invalid, Please enter the correct number!\033[0m"
@@ -233,7 +234,7 @@ set_s3_test()
 				break
 				;;
 			"n"|"N" )
-				echo "S3 N"
+				#echo "S3 N"
 				break
 				;;
 			* )
@@ -301,34 +302,34 @@ init_env()
 	set_s3_test
 
 	#del old logs
-	rm -rfv $dir/test-file
-	rm -rfv $dir/logs
+	rm -rfv $dir/test-file 2>&1 >/dev/null
+	rm -rfv $dir/logs 2>&1 >/dev/null
 
 	#set test order
 	temp_str[0]=" "
 	echo -ne "\033[36m ##Please set your test order ########\033[0m\n"
-	if [[ -f $dir/test-file_spec ]]; then
+	if [[ -f $dir/.test-file_spec ]]; then
 		i=1
 		temp_str[i]="Spec2006"
 		echo -ne "\033[36m ##       $i. Spec2006		########\033[0m\n"
 	fi
-	if [[ -f $dir/test-file_stress ]]; then
+	if [[ -f $dir/.test-file_stress ]]; then
 		i=$(($i+1))
 		temp_str[i]="Stress"
 		echo -ne "\033[36m ##       $i. Stress		########\033[0m\n"
 	fi
-	if [[ -f $dir/test-file_reboot ]]; then
+	if [[ -f $dir/.test-file_reboot ]]; then
 		i=$(($i+1))
 		temp_str[i]="Reboot"
 		echo -ne "\033[36m ##       $i. Reboot		########\033[0m\n"
 	fi
-	if [[ -f $dir/test-file_s3 ]]; then
+	if [[ -f $dir/.test-file_s3 ]]; then
 		i=$(($i+1))
 		temp_str[i]="S3"
 		echo -ne "\033[36m ##       $i. S3		########\033[0m\n"
 	fi
-	echo "temp_str:" ${temp_str[1]}
-	echo "temp_str_len:" ${#temp_str[@]}
+	#echo "temp_str:" ${temp_str[1]}
+	#echo "temp_str_len:" ${#temp_str[@]}
 	if [[ ${#temp_str[@]} -le 1 ]]; then
 			echo -e "\033[31mNo test case was selected! Exit!\033[0m "
 			exit 0
@@ -351,7 +352,7 @@ init_env()
 		if [[ -f .invalid ]]; then
 			echo -e "\033[31mInvalid input, please re-enter!\033[0m "
 			echo -ne '\033[35mEnter the test order you want:\033[0m' 
-			rm -rf .invalid
+			rm -rf .invalid 2>&1 >/dev/null
 			continue
 		fi
 
@@ -373,26 +374,26 @@ init_env()
 
 		#write test data to test-file
 		for i in "${!testorder[@]}"; do
-			echo "sss:"  $i ${temp_str[${testorder[i]}]}
+			#echo "sss:"  $i ${temp_str[${testorder[i]}]}
 			if [[ ${temp_str[${testorder[i]}]} = Spec2006 ]]; then
-				cat  $dir/test-file_spec >> $dir/test-file
+				cat  $dir/.test-file_spec >> $dir/test-file
 			fi
 
 			if [[ ${temp_str[${testorder[i]}]} = Stress ]]; then
-				cat  $dir/test-file_stress >> $dir/test-file
+				cat  $dir/.test-file_stress >> $dir/test-file
 			fi
 
 			if [[ ${temp_str[${testorder[i]}]} = Reboot ]]; then
-				cat  $dir/test-file_reboot >> $dir/test-file
+				cat  $dir/.test-file_reboot >> $dir/test-file
 			fi
 
 			if [[ ${temp_str[${testorder[i]}]} = S3 ]]; then
-				cat  $dir/test-file_s3 >> $dir/test-file
+				cat  $dir/.test-file_s3 >> $dir/test-file
 			fi
 		done
 		break
 	done
-	rm -rf $dir/test-file_*
+	rm -rf $dir/.test-file_* 2>&1 >/dev/null
 }
 
 # save old result
@@ -423,7 +424,7 @@ while getopts 'f:c h' OPT; do
 		f) 
 			echo "begin with exited test-file"
 			set_test_path	
-			rm -rf $dir/logs
+			rm -rf $dir/logs 2>&1 >/dev/null
 			save_old_result
 			set_autologin
 			break

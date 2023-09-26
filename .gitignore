@@ -3,3 +3,4 @@ reboot/
 test-file
 logs
 check_logs
+.test-file_*
