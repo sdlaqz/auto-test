@@ -123,6 +123,7 @@ stop_test()
 # spec2006 test func
 start_spec2006_test()
 {
+	rm -rf ~/.config/lbrowser/BrowserMetrics/* 2>&1 >/dev/null
 	echo ">>>>>>>>>>$test_object<<<<<<<<<" |tee -a $RUN_LOG |tee -a $SPEC_LOG
 	echo `date` |tee -a $RUN_LOG |tee -a $SPEC_LOG
 	cd  $SPEC2006_DIR
@@ -167,6 +168,7 @@ start_spec2006_test()
 # stress test func
 start_stress_test()
 {
+	rm -rf ~/.config/lbrowser/BrowserMetrics/* 2>&1 >/dev/null
 	echo ">>>>>>>>>>$test_object<<<<<<<<<" |tee -a $STRESS_LOG |tee -a $RUN_LOG 
 	echo `date` |tee -a $STRESS_LOG |tee -a $RUN_LOG 
 	cd  $STRESS_DIR
